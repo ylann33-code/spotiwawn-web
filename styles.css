@@ -1,0 +1,251 @@
+:root {
+  --bg-dark: #0b0606;
+  --bg-card: #140b0a;
+  --bg-card-hover: #1e100e;
+  --primary: #ff5500;
+  --primary-bright: #ff3d00;
+  --text-main: #ffffff;
+  --text-muted: #b3b3b3;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-family);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar & Layout */
+.app-container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #000000;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-right: 1px solid rgba(255, 85, 0, 0.15);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover, .nav-item.active {
+  background-color: var(--bg-card-hover);
+  color: var(--primary);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 110px;
+  background: linear-gradient(180deg, #190604 0%, var(--bg-dark) 300px);
+}
+
+.tab-screen {
+  display: none;
+  padding: 30px;
+}
+
+.tab-screen.active {
+  display: block;
+}
+
+/* Hero Section */
+.hero-banner {
+  background: radial-gradient(circle at center, #2e0d08 0%, var(--bg-card) 100%);
+  border: 1px solid rgba(255, 85, 0, 0.3);
+  border-radius: 20px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.media-cover {
+  width: 220px;
+  height: 220px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+  margin-bottom: 20px;
+}
+
+.media-cover video, .media-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.play-btn-large {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-bright), var(--primary));
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 85, 0, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.play-btn-large:hover {
+  transform: scale(1.08);
+}
+
+/* Track Lists */
+.track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.track-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.track-item:hover {
+  background-color: var(--bg-card-hover);
+}
+
+.track-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.like-btn.liked {
+  color: var(--primary);
+}
+
+/* Sticky Bottom Player Bar */
+.bottom-player {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background-color: #120908;
+  border-top: 1px solid rgba(255, 85, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  z-index: 100;
+}
+
+.player-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 40%;
+}
+
+.controls-btns {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.progress-slider {
+  flex: 1;
+  accent-color: var(--primary);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0;
+    z-index: 200;
+  }
+  .brand { display: none; }
+  .nav-links { flex-direction: row; width: 100%; justify-content: space-around; }
+  .bottom-player { bottom: 60px; height: 75px; padding: 0 15px; }
+}
