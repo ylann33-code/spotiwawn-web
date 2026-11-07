@@ -1,0 +1,28 @@
+[
+  {
+    "id": "urbaniste_criminel",
+    "title": "Urbanist Criminel",
+    "artist": "The Wawn",
+    "album": "Urbanist Criminel",
+    "description": "Plongez dans l'univers d'Urbanist Criminel.",
+    "durationMs": 184000,
+    "mediaUrl": "music/urbaniste_criminel/media.mp4",
+    "hasCustomCover": false,
+    "coverUrl": "",
+    "categories": ["Urban & Rap", "Rock Criminel"],
+    "addToOfficialPlaylist": true
+  },
+  {
+    "id": "on_mappelle_le_wawn",
+    "title": "On m'appelle le Wawn",
+    "artist": "The Wawn",
+    "album": "The Wawnerie",
+    "description": "Le titre emblématique de The Wawn.",
+    "durationMs": 195000,
+    "mediaUrl": "music/on_mappelle_le_wawn/media.mp4",
+    "hasCustomCover": false,
+    "coverUrl": "",
+    "categories": ["Nouveautés", "Urban & Rap"],
+    "addToOfficialPlaylist": true
+  }
+]
