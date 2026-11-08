@@ -5,13 +5,14 @@ let currentTrackIndex = -1;
 let likedTrackIds = new Set();
 let customPlaylists = [];
 let currentUser = null;
+let selectedCategory = "";
 
 const audioPlayer = new Audio();
 
-// Init
 document.addEventListener("DOMContentLoaded", async () => {
   await loadMusicData();
   setupNavigation();
+  setupSearchAndFilters();
   setupPlayerControls();
   setupAuth();
 });
@@ -25,7 +26,7 @@ async function loadMusicData() {
       document.getElementById("hero-video").src = tracks[0].mediaUrl;
     }
   } catch (e) {
-    console.error("Erreur de chargement de music.json", e);
+    console.error("Erreur music.json", e);
   }
 }
 
@@ -33,11 +34,55 @@ function setupNavigation() {
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", () => {
       document.querySelectorAll(".nav-item").forEach(i => i.classList.remove("active"));
-      document.querySelectorAll(".tab-screen").forEach(s => s.classList.remove("active"));
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
       
       item.classList.add("active");
       const targetTab = item.getAttribute("data-tab");
       document.getElementById(targetTab).classList.add("active");
+    });
+  });
+
+  // Open Full Player Modal
+  document.getElementById("bottom-player").addEventListener("click", () => {
+    if (currentTrackIndex !== -1) {
+      document.getElementById("full-player-modal").classList.add("active");
+    }
+  });
+
+  document.getElementById("close-full-player").addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById("full-player-modal").classList.remove("active");
+  });
+}
+
+function setupSearchAndFilters() {
+  const searchInput = document.getElementById("search-input");
+  
+  const filterAndRender = () => {
+    const query = searchInput.value.toLowerCase().trim();
+    const filtered = tracks.filter(t => {
+      const matchesQuery = !query || t.title.toLowerCase().includes(query) || t.artist.toLowerCase().includes(query) || t.album.toLowerCase().includes(query);
+      const matchesCategory = !selectedCategory || (t.categories && t.categories.includes(selectedCategory));
+      return matchesQuery && matchesCategory;
+    });
+
+    const list = document.getElementById("search-results-list");
+    list.innerHTML = "";
+    filtered.forEach((track) => {
+      const index = tracks.findIndex(t => t.id === track.id);
+      const div = createTrackItemElement(track, index);
+      list.appendChild(div);
+    });
+  };
+
+  searchInput.addEventListener("input", filterAndRender);
+
+  document.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      selectedCategory = chip.getAttribute("data-category");
+      filterAndRender();
     });
   });
 }
@@ -46,48 +91,60 @@ function renderPopularTracks() {
   const list = document.getElementById("popular-tracks-list");
   list.innerHTML = "";
   tracks.forEach((track, index) => {
-    const isLiked = likedTrackIds.has(track.id);
-    const div = document.createElement("div");
-    div.className = "track-item";
-    div.innerHTML = `
-      <div class="track-left">
-        <span style="color: var(--text-muted); font-weight: bold; width: 20px;">${index + 1}</span>
-        <div>
-          <div style="font-weight: bold;">${track.title}</div>
-          <div style="color: var(--text-muted); font-size: 12px;">${track.artist}</div>
-        </div>
-      </div>
-      <button class="like-btn ${isLiked ? 'liked' : ''}" data-id="${track.id}">${isLiked ? '❤️' : '🤍'}</button>
-    `;
-    div.addEventListener("click", (e) => {
-      if (!e.target.classList.contains("like-btn")) {
-        playTrack(index);
-      }
-    });
+    const div = createTrackItemElement(track, index);
     list.appendChild(div);
   });
+}
 
-  document.querySelectorAll(".like-btn").forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const id = btn.getAttribute("data-id");
-      toggleFavorite(id);
-    });
+function createTrackItemElement(track, index) {
+  const isLiked = likedTrackIds.has(track.id);
+  const div = document.createElement("div");
+  div.className = "track-item";
+  div.innerHTML = `
+    <div class="track-info-left">
+      <span style="color: var(--text-muted); font-weight: bold; width: 20px;">${index + 1}</span>
+      <div>
+        <div style="font-weight: bold; font-size: 15px;">${track.title}</div>
+        <div style="color: var(--text-muted); font-size: 13px;">${track.artist}</div>
+      </div>
+    </div>
+    <button class="btn-icon like-btn ${isLiked ? 'active' : ''}" data-id="${track.id}">
+      <svg style="width:22px; height:22px; fill:${isLiked ? 'var(--primary)' : 'var(--text-muted)'};" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    </button>
+  `;
+
+  div.addEventListener("click", (e) => {
+    if (!e.target.closest(".like-btn")) {
+      playTrack(index);
+    }
   });
+
+  div.querySelector(".like-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleFavorite(track.id);
+  });
+
+  return div;
 }
 
 function playTrack(index) {
   if (index < 0 || index >= tracks.length) return;
   currentTrackIndex = index;
   const track = tracks[index];
-  
+
   audioPlayer.src = track.mediaUrl;
   audioPlayer.play();
 
   document.getElementById("player-title").innerText = track.title;
   document.getElementById("player-artist").innerText = track.artist;
-  document.getElementById("play-pause-btn").innerText = "⏸";
-  document.getElementById("hero-video").src = track.mediaUrl;
+  document.getElementById("mini-video").src = track.mediaUrl;
+  document.getElementById("mini-video").style.display = "block";
+
+  document.getElementById("full-title").innerText = track.title;
+  document.getElementById("full-artist").innerText = track.artist;
+  document.getElementById("full-video").src = track.mediaUrl;
+
+  updatePlayPauseUI(true);
 }
 
 function toggleFavorite(trackId) {
@@ -96,6 +153,8 @@ function toggleFavorite(trackId) {
   } else {
     likedTrackIds.add(trackId);
   }
+  
+  document.getElementById("liked-count-text").innerText = `Ma musique • ${likedTrackIds.size} titre${likedTrackIds.size > 1 ? 's' : ''}`;
   renderPopularTracks();
 
   if (currentUser) {
@@ -114,18 +173,18 @@ function setupPlayerControls() {
     }
     if (audioPlayer.paused) {
       audioPlayer.play();
-      playBtn.innerText = "⏸";
+      updatePlayPauseUI(true);
     } else {
       audioPlayer.pause();
-      playBtn.innerText = "▶";
+      updatePlayPauseUI(false);
     }
   };
 
-  playBtn.addEventListener("click", togglePlay);
+  playBtn.addEventListener("click", (e) => { e.stopPropagation(); togglePlay(); });
   heroPlayBtn.addEventListener("click", togglePlay);
 
-  document.getElementById("prev-btn").addEventListener("click", () => playTrack(currentTrackIndex - 1));
-  document.getElementById("next-btn").addEventListener("click", () => playTrack(currentTrackIndex + 1));
+  document.getElementById("prev-btn").addEventListener("click", (e) => { e.stopPropagation(); playTrack(currentTrackIndex - 1); });
+  document.getElementById("next-btn").addEventListener("click", (e) => { e.stopPropagation(); playTrack(currentTrackIndex + 1); });
 
   audioPlayer.addEventListener("timeupdate", () => {
     if (audioPlayer.duration) {
@@ -143,6 +202,15 @@ function setupPlayerControls() {
   });
 }
 
+function updatePlayPauseUI(isPlaying) {
+  const icon = document.getElementById("play-icon");
+  if (isPlaying) {
+    icon.setAttribute("d", "M6 19h4V5H6v14zm8-14v14h4V5h-4z");
+  } else {
+    icon.setAttribute("d", "M8 5v14l11-7z");
+  }
+}
+
 function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = Math.floor(sec % 60);
@@ -151,7 +219,7 @@ function formatTime(sec) {
 
 function setupAuth() {
   const authBtn = document.getElementById("auth-btn");
-  
+
   authBtn.addEventListener("click", () => {
     if (currentUser) {
       signOut(auth);
@@ -169,14 +237,12 @@ function setupAuth() {
       document.getElementById("user-avatar").style.display = "block";
       authBtn.innerText = "Se déconnecter";
 
-      // Realtime Sync from Firebase
       onValue(ref(db, `users/${user.uid}`), (snapshot) => {
         const data = snapshot.val();
-        if (data) {
-          if (data.likedTrackIds) {
-            likedTrackIds = new Set(data.likedTrackIds);
-            renderPopularTracks();
-          }
+        if (data && data.likedTrackIds) {
+          likedTrackIds = new Set(data.likedTrackIds);
+          document.getElementById("liked-count-text").innerText = `Ma musique • ${likedTrackIds.size} titre${likedTrackIds.size > 1 ? 's' : ''}`;
+          renderPopularTracks();
         }
       });
     } else {
