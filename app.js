@@ -3,7 +3,6 @@ import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, db,
 let tracks = [];
 let currentTrackIndex = -1;
 let likedTrackIds = new Set();
-let customPlaylists = [];
 let currentUser = null;
 let selectedCategory = "";
 
@@ -22,6 +21,7 @@ async function loadMusicData() {
     const res = await fetch("music.json");
     tracks = await res.json();
     renderPopularTracks();
+    renderLibraryGrid();
     if (tracks.length > 0) {
       document.getElementById("hero-video").src = tracks[0].mediaUrl;
     }
@@ -39,10 +39,18 @@ function setupNavigation() {
       item.classList.add("active");
       const targetTab = item.getAttribute("data-tab");
       document.getElementById(targetTab).classList.add("active");
+
+      if (targetTab === "tab-library") {
+        renderLibraryGrid();
+      }
     });
   });
 
-  // Open Full Player Modal
+  document.getElementById("back-to-library-btn").addEventListener("click", () => {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById("tab-library").classList.add("active");
+  });
+
   document.getElementById("bottom-player").addEventListener("click", () => {
     if (currentTrackIndex !== -1) {
       document.getElementById("full-player-modal").classList.add("active");
@@ -70,8 +78,7 @@ function setupSearchAndFilters() {
     list.innerHTML = "";
     filtered.forEach((track) => {
       const index = tracks.findIndex(t => t.id === track.id);
-      const div = createTrackItemElement(track, index);
-      list.appendChild(div);
+      list.appendChild(createTrackItemElement(track, index));
     });
   };
 
@@ -91,9 +98,67 @@ function renderPopularTracks() {
   const list = document.getElementById("popular-tracks-list");
   list.innerHTML = "";
   tracks.forEach((track, index) => {
-    const div = createTrackItemElement(track, index);
-    list.appendChild(div);
+    list.appendChild(createTrackItemElement(track, index));
   });
+}
+
+function renderLibraryGrid() {
+  const grid = document.getElementById("library-playlists-grid");
+  grid.innerHTML = "";
+
+  // 1. Titres Aimés
+  const likedCard = document.createElement("div");
+  likedCard.className = "track-item";
+  likedCard.innerHTML = `
+    <div class="track-info-left">
+      <div style="width: 50px; height: 50px; border-radius: 10px; background: var(--primary); display: flex; align-items: center; justify-content: center;">
+        <svg style="width:26px; height:26px; fill:white;" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </div>
+      <div>
+        <div style="font-size: 16px; font-weight: bold;">Titres aimés</div>
+        <div style="color: var(--text-muted); font-size: 13px;">Ma musique • ${likedTrackIds.size} titre${likedTrackIds.size > 1 ? 's' : ''}</div>
+      </div>
+    </div>
+  `;
+  likedCard.addEventListener("click", () => openPlaylistDetail("Titres aimés", "Vos morceaux préférés", tracks.filter(t => likedTrackIds.has(t.id))));
+  grid.appendChild(likedCard);
+
+  // 2. The Wawnerie
+  const wawnerieCard = document.createElement("div");
+  wawnerieCard.className = "track-item";
+  wawnerieCard.innerHTML = `
+    <div class="track-info-left">
+      <img src="logo.png" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" onerror="this.style.display='none'">
+      <div>
+        <div style="font-size: 16px; font-weight: bold;">The Wawnerie</div>
+        <div style="color: var(--text-muted); font-size: 13px;">Playlist Officielle • ${tracks.length} titres</div>
+      </div>
+    </div>
+  `;
+  wawnerieCard.addEventListener("click", () => openPlaylistDetail("The Wawnerie", "La sélection officielle SpotiWawn.", tracks));
+  grid.appendChild(wawnerieCard);
+}
+
+function openPlaylistDetail(title, desc, playlistTracks) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("tab-playlist-detail").classList.add("active");
+
+  document.getElementById("detail-playlist-title").innerText = title;
+  document.getElementById("detail-playlist-desc").innerText = desc;
+
+  const list = document.getElementById("detail-tracks-list");
+  list.innerHTML = "";
+  playlistTracks.forEach((track) => {
+    const index = tracks.findIndex(t => t.id === track.id);
+    list.appendChild(createTrackItemElement(track, index));
+  });
+
+  document.getElementById("detail-play-btn").onclick = () => {
+    if (playlistTracks.length > 0) {
+      const idx = tracks.findIndex(t => t.id === playlistTracks[0].id);
+      playTrack(idx);
+    }
+  };
 }
 
 function createTrackItemElement(track, index) {
@@ -154,7 +219,6 @@ function toggleFavorite(trackId) {
     likedTrackIds.add(trackId);
   }
   
-  document.getElementById("liked-count-text").innerText = `Ma musique • ${likedTrackIds.size} titre${likedTrackIds.size > 1 ? 's' : ''}`;
   renderPopularTracks();
 
   if (currentUser) {
@@ -241,7 +305,6 @@ function setupAuth() {
         const data = snapshot.val();
         if (data && data.likedTrackIds) {
           likedTrackIds = new Set(data.likedTrackIds);
-          document.getElementById("liked-count-text").innerText = `Ma musique • ${likedTrackIds.size} titre${likedTrackIds.size > 1 ? 's' : ''}`;
           renderPopularTracks();
         }
       });
