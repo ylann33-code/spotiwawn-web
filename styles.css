@@ -30,7 +30,7 @@ body {
   height: 100vh;
 }
 
-/* Sidebar Desktop */
+/* Sidebar Navigation */
 .sidebar {
   width: 240px;
   background-color: #000000;
@@ -89,7 +89,15 @@ body {
   fill: currentColor;
 }
 
-/* Main Content View */
+.nav-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid var(--primary);
+}
+
+/* Main View */
 .main-view {
   flex: 1;
   overflow-y: auto;
@@ -108,7 +116,7 @@ body {
   display: block;
 }
 
-/* Hero Section */
+/* Banner & Cards */
 .hero-banner {
   background: radial-gradient(circle at center, #2e0d08 0%, var(--bg-card) 100%);
   border: 1px solid rgba(255, 85, 0, 0.3);
@@ -156,7 +164,6 @@ body {
   transform: scale(1.08);
 }
 
-/* Track Lists */
 .track-list {
   display: flex;
   flex-direction: column;
@@ -225,7 +232,7 @@ body {
   color: white;
 }
 
-/* Bottom Player Bar & Centered Controls */
+/* Bottom Player Bar */
 .bottom-player {
   position: fixed;
   bottom: 0;
@@ -270,7 +277,37 @@ body {
   height: 4px;
 }
 
-/* Full Player Modal */
+/* Modals (Welcome, Full Player, Create Playlist) */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: #190907;
+  border: 1px solid var(--primary);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(255, 85, 0, 0.3);
+}
+
 .full-player-modal {
   position: fixed;
   top: 0;
@@ -306,7 +343,7 @@ body {
   object-fit: cover;
 }
 
-/* Mobile Adaptive & 4 Equally Spaced Navigation Tabs */
+/* Mobile Responsive */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
