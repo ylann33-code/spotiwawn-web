@@ -9,7 +9,7 @@
 <body>
 
   <div class="app-layout">
-    <!-- Sidebar / Navigation -->
+    <!-- Navigation (Sidebar Desktop / Bottom Bar Mobile) -->
     <nav class="sidebar">
       <div class="brand">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.style.display='none'">
@@ -29,7 +29,8 @@
           <span>Bibliothèque</span>
         </li>
         <li class="nav-item" data-tab="tab-account">
-          <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          <img id="nav-user-avatar" class="nav-avatar" src="" style="display: none;">
+          <svg id="nav-default-avatar" class="nav-icon" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
           <span>Compte</span>
         </li>
       </ul>
@@ -75,6 +76,7 @@
       <section id="tab-library" class="screen">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <h2 style="font-size: 24px; font-weight: 800;">Bibliothèque</h2>
+          <button id="open-create-playlist-btn" style="padding: 10px 18px; border-radius: 20px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer;">+ Créer une playlist</button>
         </div>
 
         <div id="library-playlists-grid" class="track-list" style="margin-top: 20px;"></div>
@@ -82,10 +84,13 @@
 
       <!-- 4. DÉTAIL D'UNE PLAYLIST -->
       <section id="tab-playlist-detail" class="screen">
-        <button id="back-to-library-btn" style="background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 20px;">← Retour</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <button id="back-to-library-btn" style="background: none; border: none; color: white; font-weight: bold; cursor: pointer; font-size: 15px;">← Retour</button>
+          <button id="delete-playlist-btn" style="background: none; border: none; color: var(--primary-bright); font-weight: bold; cursor: pointer; display: none;">Supprimer la playlist</button>
+        </div>
         
         <div class="hero-banner">
-          <div class="hero-cover" id="detail-cover-box">
+          <div class="hero-cover">
             <img id="detail-cover-img" src="logo.png" style="width:100%; height:100%; object-fit:cover;">
           </div>
           <h1 id="detail-playlist-title" style="font-size: 28px; font-weight: 900;">Titre Playlist</h1>
@@ -102,18 +107,32 @@
       <!-- 5. COMPTE -->
       <section id="tab-account" class="screen">
         <h2 style="font-size: 24px; font-weight: 800;">Mon Compte</h2>
+        
+        <!-- User Profile Card -->
         <div style="background: var(--bg-card); padding: 30px; border-radius: 16px; margin-top: 20px; text-align: center;">
           <img id="user-avatar" src="" style="width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--primary); display: none; margin: 0 auto 15px; object-fit: cover;">
           <h3 id="user-name" style="font-size: 20px; font-weight: bold;">Invité SpotiWawn</h3>
           <p id="user-email" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">non_connecte@spotiwawn.app</p>
           <button id="auth-btn" style="margin-top: 25px; padding: 12px 24px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; font-size: 15px;">Se connecter avec Google</button>
         </div>
+
+        <!-- Android APK Download Card -->
+        <div style="background: var(--bg-card); padding: 25px; border-radius: 16px; margin-top: 20px; text-align: left; border: 1px solid rgba(255, 85, 0, 0.2);">
+          <h3 style="font-size: 18px; font-weight: bold; color: var(--primary);">Application Android (APK)</h3>
+          <p style="color: var(--text-muted); font-size: 13px; margin: 8px 0 18px; line-height: 1.5;">
+            Téléchargez l'application officielle SpotiWawn pour votre smartphone Android ou installez la dernière mise à jour.
+          </p>
+          <a href="SpotiWawn.apk" download="SpotiWawn.apk" style="display: inline-flex; align-items: center; gap: 10px; background: var(--primary); color: white; padding: 12px 20px; border-radius: 12px; font-weight: bold; text-decoration: none; font-size: 14px;">
+            <svg style="width:20px; height:20px; fill:white;" viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/></svg>
+            Télécharger l'APK Android
+          </a>
+        </div>
       </section>
 
     </main>
   </div>
 
-  <!-- Bottom Player Bar (Centered Controls) -->
+  <!-- Bottom Mini Player Bar -->
   <div id="bottom-player" class="bottom-player">
     <div style="display: flex; align-items: center; gap: 12px; width: 30%;">
       <div id="mini-cover" style="width: 44px; height: 44px; border-radius: 8px; background: var(--bg-card); overflow: hidden;">
@@ -141,6 +160,30 @@
         <span id="current-time">0:00</span>
         <input type="range" id="seek-bar" class="progress-slider" value="0" max="100">
         <span id="total-time">0:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome Sign-In Modal -->
+  <div id="welcome-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 12px; color: var(--primary);">Bienvenue sur SpotiWawn</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.5;">
+        Connectez-vous avec votre compte Google pour sauvegarder vos favoris, vos playlists personnalisées et les retrouver synchronisés en direct sur tous vos appareils !
+      </p>
+      <button id="welcome-signin-btn" style="width: 100%; padding: 14px; border-radius: 12px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; font-size: 15px; margin-bottom: 12px;">Se connecter avec Google</button>
+      <button id="welcome-guest-btn" style="background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer;">Continuer en mode invité</button>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div id="create-playlist-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 15px;">Créer une playlist</h2>
+      <input type="text" id="new-playlist-title" placeholder="Nom de la playlist" style="width: 100%; padding: 12px; border-radius: 10px; background: var(--bg-card); border: 1px solid var(--primary); color: white; margin-bottom: 15px;">
+      <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+        <button id="confirm-create-playlist-btn" style="padding: 10px 20px; border-radius: 10px; background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer;">Créer</button>
+        <button id="cancel-create-playlist-btn" style="padding: 10px 20px; border-radius: 10px; background: var(--bg-card); color: var(--text-muted); border: none; font-weight: bold; cursor: pointer;">Annuler</button>
       </div>
     </div>
   </div>
