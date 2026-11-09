@@ -3,8 +3,10 @@ import { auth, googleProvider, signInWithPopup, signOut, onAuthStateChanged, db,
 let tracks = [];
 let currentTrackIndex = -1;
 let likedTrackIds = new Set();
+let customPlaylists = [];
 let currentUser = null;
 let selectedCategory = "";
+let currentDetailPlaylistId = null;
 
 const audioPlayer = new Audio();
 
@@ -14,6 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupSearchAndFilters();
   setupPlayerControls();
   setupAuth();
+  setupModals();
 });
 
 async function loadMusicData() {
@@ -49,6 +52,12 @@ function setupNavigation() {
   document.getElementById("back-to-library-btn").addEventListener("click", () => {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
     document.getElementById("tab-library").classList.add("active");
+  });
+
+  document.getElementById("delete-playlist-btn").addEventListener("click", () => {
+    if (currentDetailPlaylistId) {
+      deleteCustomPlaylist(currentDetailPlaylistId);
+    }
   });
 
   document.getElementById("bottom-player").addEventListener("click", () => {
@@ -120,7 +129,7 @@ function renderLibraryGrid() {
       </div>
     </div>
   `;
-  likedCard.addEventListener("click", () => openPlaylistDetail("Titres aimés", "Vos morceaux préférés", tracks.filter(t => likedTrackIds.has(t.id))));
+  likedCard.addEventListener("click", () => openPlaylistDetail("liked_songs", "Titres aimés", "Vos morceaux préférés", tracks.filter(t => likedTrackIds.has(t.id))));
   grid.appendChild(likedCard);
 
   // 2. The Wawnerie
@@ -135,16 +144,36 @@ function renderLibraryGrid() {
       </div>
     </div>
   `;
-  wawnerieCard.addEventListener("click", () => openPlaylistDetail("The Wawnerie", "La sélection officielle SpotiWawn.", tracks));
+  wawnerieCard.addEventListener("click", () => openPlaylistDetail("wawnerie_official", "The Wawnerie", "La sélection officielle SpotiWawn.", tracks));
   grid.appendChild(wawnerieCard);
+
+  // 3. Custom Playlists
+  customPlaylists.forEach(pl => {
+    const plCard = document.createElement("div");
+    plCard.className = "track-item";
+    const plTracks = tracks.filter(t => pl.trackIds && pl.trackIds.includes(t.id));
+    plCard.innerHTML = `
+      <div class="track-info-left">
+        <div style="width: 50px; height: 50px; border-radius: 10px; background: ${pl.coverColorHex || '#FF5500'}; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;">🎵</div>
+        <div>
+          <div style="font-size: 16px; font-weight: bold;">${pl.title}</div>
+          <div style="color: var(--text-muted); font-size: 13px;">Playlist créée • ${plTracks.length} titre${plTracks.length > 1 ? 's' : ''}</div>
+        </div>
+      </div>
+    `;
+    plCard.addEventListener("click", () => openPlaylistDetail(pl.id, pl.title, "Playlist personnalisée SpotiWawn", plTracks, true));
+    grid.appendChild(plCard);
+  });
 }
 
-function openPlaylistDetail(title, desc, playlistTracks) {
+function openPlaylistDetail(id, title, desc, playlistTracks, isCustom = false) {
+  currentDetailPlaylistId = id;
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById("tab-playlist-detail").classList.add("active");
 
   document.getElementById("detail-playlist-title").innerText = title;
   document.getElementById("detail-playlist-desc").innerText = desc;
+  document.getElementById("delete-playlist-btn").style.display = isCustom ? "block" : "none";
 
   const list = document.getElementById("detail-tracks-list");
   list.innerHTML = "";
@@ -226,6 +255,36 @@ function toggleFavorite(trackId) {
   }
 }
 
+function createCustomPlaylist(title) {
+  if (!title.trim()) return;
+  const newPl = {
+    id: "user_playlist_" + Date.now(),
+    title: title.trim(),
+    subtitle: "Playlist créée",
+    description: "Playlist personnalisée SpotiWawn",
+    coverColorHex: "#FF5500",
+    coverSymbol: "🎵",
+    trackIds: []
+  };
+  customPlaylists.push(newPl);
+  renderLibraryGrid();
+
+  if (currentUser) {
+    set(ref(db, `users/${currentUser.uid}/playlists`), customPlaylists);
+  }
+}
+
+function deleteCustomPlaylist(playlistId) {
+  customPlaylists = customPlaylists.filter(pl => pl.id !== playlistId);
+  renderLibraryGrid();
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById("tab-library").classList.add("active");
+
+  if (currentUser) {
+    set(ref(db, `users/${currentUser.uid}/playlists`), customPlaylists);
+  }
+}
+
 function setupPlayerControls() {
   const playBtn = document.getElementById("play-pause-btn");
   const heroPlayBtn = document.getElementById("hero-play-btn");
@@ -281,8 +340,21 @@ function formatTime(sec) {
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 }
 
+function setupModals() {
+  const createModal = document.getElementById("create-playlist-modal");
+  document.getElementById("open-create-playlist-btn").addEventListener("click", () => createModal.classList.add("active"));
+  document.getElementById("cancel-create-playlist-btn").addEventListener("click", () => createModal.classList.remove("active"));
+  document.getElementById("confirm-create-playlist-btn").addEventListener("click", () => {
+    const title = document.getElementById("new-playlist-title").value;
+    createCustomPlaylist(title);
+    document.getElementById("new-playlist-title").value = "";
+    createModal.classList.remove("active");
+  });
+}
+
 function setupAuth() {
   const authBtn = document.getElementById("auth-btn");
+  const welcomeModal = document.getElementById("welcome-modal");
 
   authBtn.addEventListener("click", () => {
     if (currentUser) {
@@ -292,27 +364,55 @@ function setupAuth() {
     }
   });
 
+  document.getElementById("welcome-signin-btn").addEventListener("click", () => {
+    welcomeModal.classList.remove("active");
+    signInWithPopup(auth, googleProvider);
+  });
+
+  document.getElementById("welcome-guest-btn").addEventListener("click", () => {
+    welcomeModal.classList.remove("active");
+  });
+
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user) {
+      welcomeModal.classList.remove("active");
+
       document.getElementById("user-name").innerText = user.displayName;
       document.getElementById("user-email").innerText = user.email;
       document.getElementById("user-avatar").src = user.photoURL;
       document.getElementById("user-avatar").style.display = "block";
       authBtn.innerText = "Se déconnecter";
 
+      // Nav bar avatar
+      document.getElementById("nav-default-avatar").style.display = "none";
+      const navAvatar = document.getElementById("nav-user-avatar");
+      navAvatar.src = user.photoURL;
+      navAvatar.style.display = "block";
+
       onValue(ref(db, `users/${user.uid}`), (snapshot) => {
         const data = snapshot.val();
-        if (data && data.likedTrackIds) {
-          likedTrackIds = new Set(data.likedTrackIds);
+        if (data) {
+          if (data.likedTrackIds) {
+            likedTrackIds = new Set(data.likedTrackIds);
+          }
+          if (data.playlists) {
+            customPlaylists = data.playlists;
+          }
           renderPopularTracks();
+          renderLibraryGrid();
         }
       });
     } else {
+      welcomeModal.classList.add("active");
+
       document.getElementById("user-name").innerText = "Invité SpotiWawn";
       document.getElementById("user-email").innerText = "non_connecte@spotiwawn.app";
       document.getElementById("user-avatar").style.display = "none";
       authBtn.innerText = "Se connecter avec Google";
+
+      document.getElementById("nav-user-avatar").style.display = "none";
+      document.getElementById("nav-default-avatar").style.display = "block";
     }
   });
 }
